@@ -1,6 +1,8 @@
 const userModel = require('../model/userModel')
 const bcrypt = require('bcrypt');
-const {uploadFile}=require("../aws/aws")
+const {uploadFile}=require("../aws/aws");
+const { default: mongoose } = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 // const saltRounds = 10;
 
@@ -105,6 +107,66 @@ const createUser = async (req, res) => {
     }
 }
 
+const getUserDetails = async function (req, res) {
+    try {
+      const userId = req.params.userId;
+    //   userId = "62fd292d338c06ccba81c98d";
+  
+      if (!userId)
+        return res
+          .status(400)
+          .send({ status: false, message: "Please provide userId." });
+  
+      if (!mongoose.Types.ObjectId.isValid(userId))
+        return res
+          .status(400)
+          .send({ status: false, message: "Please provide a valid userId." });
+  
+      const userData = await userModel.findById(userId);
+      if (!userData)
+        return res
+          .status(404)
+          .send({ status: false, message: "user not found." });
+  
+      return res
+        .status(200)
+        .send({ status: true, message: "User profile details", data: userData });
+    } catch (err) {
+      res.status(500).send({ status: false, message: err.message });
+    }
+  };
+  
+//   module.exports = {getUserDetails}
 
-module.exports = {createUser}
+const loginUser = async function (req, res) {
+    try {
+      let { email, password } = req.body;
+        if (Object.keys(req.body).length == 0) {
+            return res.status(400).send({ status: false, message: "for login user data is required" })
+        }
+      const user = await userModel.findOne({ email: email});
+      if (!user) {
+        return res.status(400).send({ status: false, message: "Please enter your correct emailId" });
+      }
+      let hpassword = await bcrypt.compare(password,user.password)
+      if(hpassword==false)return res.status(400).send({status:false,message:"Please enter your correct password"})
+
+// console.log(hpassword)
+      let exp = "20h";
+      const token = jwt.sign(
+        { userId: user._id },
+        "Project-3_Group-5",
+        { expiresIn: exp }
+      );
+    //   res.setHeader("x-api-key", token);
+      let datas= {token:token, userId:user._id, iat:Date.now(), exp:exp}
+      res.status(201).send({ status: true, message: "Login successfully...!", data: datas });
+    } catch (error) {
+      res.status(500).send({ status: false, err: error.message });
+    }
+  };
+
+
+
+module.exports = {createUser,getUserDetails,loginUser}
 
