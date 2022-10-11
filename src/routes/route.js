@@ -4,7 +4,11 @@ const {createUser,getUserDetails,loginUser,updateProfile}= require("../controlle
 
 
 //--------------------------> (This is test api ) <-------------------------------------//
-router.get("/test-me", function (req, res) {
+router.get("/test-me", async function (req, res) {
+    
+        const salt = await bcrypt.genSalt(13);
+        const password = await bcrypt.hash(req.body.password, salt);
+        console.log(password)
     res.send("My first ever api!")
 })
 
