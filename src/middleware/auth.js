@@ -4,6 +4,7 @@ const {isValidObjectId} = require("../validation/validator")
 const authentication = (req, res, next) => {
     try {
         let token = req.headers["authorization"];
+        console.log(token)
         if (!token)
             return res.status(401).send({ status: false, msg: "token is required" });
         let btoken=token.split(" ")
