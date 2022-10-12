@@ -18,4 +18,11 @@ router.get("/user/:userId/profile",authentication,authorization,getUserDetails)
 router.post("/login",loginUser)
 router.put('/user/:userId/profile',authentication,authorization,updateProfile)
 
+
+router.post('/products')
+router.get('/products')
+router.get('/products/:productId')
+router.put('/products/:productId')
+router.delete('/products/:productId')
+
 module.exports = router;

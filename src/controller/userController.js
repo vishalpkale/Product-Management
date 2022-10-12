@@ -315,26 +315,23 @@ const updateProfile = async function (req, res) {
                             "please Enter valid Password and it's length should be 8-15",
                     });
             }
-            updates["password"]=password
+            const salt = await bcrypt.genSalt(10);
+            password = await bcrypt.hash(req.body.password, salt);
+            updates["password"]=password 
         }
         if (address) {
             if (address.shipping) {
                 if (address.shipping.street) {
-                    console.log("0000000")
                     if (address.shipping.street.trim().length == 0)
-                    
-                        return res
+                     return res
                             .status(400)
                             .send({
                                 status: false,
                                 message: "Please enter valid street address for shipping ",
-                            });
-                            console.log("kkxskjkkj0000000")
-                            updates["address"]["shipping"]["street"]=address.shipping.street
-                            console.log("0000000")
+                            })                 
+                 updates["address.shipping.street"]=address.shipping.street
                 }
                 if (address.shipping.city) {
-                    console.log("07777777000000")
                         if(!stringRegex(address.shipping.city))
                         return res
                             .status(400)
@@ -342,7 +339,7 @@ const updateProfile = async function (req, res) {
                                 status: false,
                                 message: "Please enter valid city address for shipping ",
                             });
-                        updates["address"]["shipping"]["city"]=address.shipping.city
+                        updates["address.shipping.city"]=address.shipping.city
                 }
                 if (address.shipping.pincode) {
                     console.log("0000kkxsa000")
@@ -353,7 +350,7 @@ const updateProfile = async function (req, res) {
                                 status: false,
                                 message: "Please enter valid shipping address pincode",
                             });
-                updates["address"]["shipping"]["pincode"]=address.shipping.pincode
+                updates["address.shipping.pincode"]=address.shipping.pincode
                 }
             }
             if (address["billing"]) {
@@ -365,7 +362,7 @@ const updateProfile = async function (req, res) {
                                 status: false,
                                 message: "Please enter valid street address for billing ",
                             });
-                            updates["address"]["billing"]["street"]=address.billing.street
+                            updates["address.billing.street"]=address.billing.street
                 }
                 if (address.billing.city) {
                     if (address.billing.city){
@@ -377,7 +374,7 @@ const updateProfile = async function (req, res) {
                                 message: "Please enter valid city address for billing ",
                             });
                         }
-                        updates["address"]["billing"]["city"]=address.billing.city
+                        updates["address.billing.city"]=address.billing.city
                 }
                 if (address.billing.pincode) {
                     if (!pincodeRegex(address.billing.pincode))
@@ -387,18 +384,14 @@ const updateProfile = async function (req, res) {
                                 status: false,
                                 message: "Please enter valid billing address pincode",
                             });
-                    updates["address"]["billing"]["pincode"]=address.billing.pincode
+                    updates["address.billing.pincode"]=address.billing.pincode
                 }
             }
         }
-            const salt = await bcrypt.genSalt(13);
-            password = await bcrypt.hash(req.body.password, salt);
-
-            // console.log(password);
-
+        
             let updateUser = await userModel.findByIdAndUpdate(
                 { _id: userId },
-                { $set:  updates  },
+                { $set:  updates},
                 { new: true }
             );
             return res.status(200).send({ status: true, data: updateUser });
