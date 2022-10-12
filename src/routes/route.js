@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {createUser,getUserDetails,loginUser,updateProfile}= require("../controller/userController")
+const{authentication,authorization}=require("../middleware/auth")
 
 
 //--------------------------> (This is test api ) <-------------------------------------//
@@ -13,8 +14,8 @@ router.get("/test-me", async function (req, res) {
 })
 
 router.post("/register",createUser)
-router.get("/getuser/:userId",getUserDetails)
-router.post("/loginUser",loginUser)
-router.post('/user/:userId/profile',updateProfile)
+router.get("/user/:userId/profile",authentication,authorization,getUserDetails)
+router.post("/login",loginUser)
+router.put('/user/:userId/profile',authentication,authorization,updateProfile)
 
 module.exports = router;

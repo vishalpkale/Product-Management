@@ -1,20 +1,8 @@
 const userModel = require('../model/userModel')
 const bcrypt = require('bcrypt');
 const {uploadFile}=require("../aws/aws");
-const { default: mongoose } = require('mongoose');
 const jwt = require('jsonwebtoken');
 const {isValidObjectId,stringRegex,phoneRegex,emailRegex,pincodeRegex,passwordRegex}=require("../validation/validator")
-
-// const saltRounds = 10;
-
-// let isvalid = (value)=>{
-//     if (typeof value == 'undefined' || value == null) return false
-//     if (typeof value == 'string' && value.trim().length == 0&&value == null) return false
-//     if(typeof value =="number" && value.toString().trim.length==0) return false
-//     return true
-// }
-
-
 
 const createUser = async (req, res) => {
     try {
@@ -38,8 +26,6 @@ const createUser = async (req, res) => {
             return res.status(400).send({ message: "No file found" });
         }
 
-        
-
         if (!stringRegex(fname)) {
             return res
                 .status(400)
@@ -50,7 +36,7 @@ const createUser = async (req, res) => {
                 .status(400)
                 .send({ status: false, message: "Please enter a valid LName" });
         }
-        if (phoneRegex(phone)) {
+        if (!phoneRegex(phone)) {
             return res
                 .status(400)
                 .send({ status: false, message: "Please Enter valid phone Number" });
@@ -133,10 +119,10 @@ const createUser = async (req, res) => {
 
         const salt = await bcrypt.genSalt(10);
         password = await bcrypt.hash(req.body.password, salt);
-        console.log(password)
+        // console.log(password)
 
-        console.log(password);
-        const hello = {
+        // console.log(password);
+        const datas={
             fname: fname,
             lname: lname,
             email: email,
@@ -145,7 +131,7 @@ const createUser = async (req, res) => {
             password: password,
             address: address,
         };
-        let savedData = await userModel.create(hello);
+        let savedData = await userModel.create(datas);
         return res
             .status(201)
             .send({ status: true, message: "Success", data: savedData });
@@ -215,11 +201,10 @@ const loginUser = async function (req, res) {
       let hpassword = await bcrypt.compare(password,user.password)
       if(hpassword==false)return res.status(400).send({status:false,message:"Please enter your correct password"})
 
-// console.log(hpassword)
       let exp = "20h";
       const token = jwt.sign(
         { userId: (user._id).toString() },
-        "Project-3_Group-5",
+        "Project-5_Group-34",
         { expiresIn: exp }
       );
     //   res.setHeader("x-api-key", token);
