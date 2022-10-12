@@ -24,14 +24,14 @@ const productSchema = new mongoose.Schema({
         required: true,
         default: "₹"
     },//ctrl+alt+4
-    isFreeShipping: { type: boolean, default: false },
+    isFreeShipping: { type: Boolean, default: false },
     productImage: {
         type: String,
-        required: true
+        // required: true
     },  // s3 link
     style: { type: String },
     availableSizes: {
-        type: [string],
+        type: [String],
         enum: ["S", "XS", "M", "X", "L", "XXL", "XL"]
     },
     installments: { type: Number },
@@ -39,7 +39,7 @@ const productSchema = new mongoose.Schema({
         type: Date,
         default: undefined
     },
-    isDeleted: { type: boolean, default: false }
+    isDeleted: { type: Boolean, default: false }
 }, { timestamp: true }
 )
 
