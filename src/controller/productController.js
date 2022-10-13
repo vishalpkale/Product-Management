@@ -74,39 +74,39 @@ const getallProduct = async function (req, res) {
       if(name){
           filters["title"]={"$regex":name,"$options":"i"}////confusion about title and description
       }
-      let gt="string"
+      let gt
       if(priceGreaterThan){
         let intergerPriceGreaterThan = parseInt(priceGreaterThan)
-          if(typeof(intergerPriceGreaterThan)!==Number && intergerPriceGreaterThan==NaN ){
+        console.log(typeof(intergerPriceGreaterThan))
+          if(typeof(intergerPriceGreaterThan)!=Number && intergerPriceGreaterThan==NaN ){
            return res.status(400).send({status:false,message:"value of priceGreaterThan can be numbers only"})
           }
           gt=intergerPriceGreaterThan
       }
-      let lt="string"
+      let lt
       if(priceLessThan){
         let intergerPriceLessThan = parseInt(priceLessThan)
+        console.log(typeof(intergerPriceLessThan))
           if(typeof(intergerPriceLessThan)!==Number && intergerPriceLessThan==NaN ){
            return res.status(400).send({status:false,message:"value of priceLessThan can be numbers only"})
           }
           lt=intergerPriceLessThan
-          if(typeof(gt)==Number){
-          filters["price"]={"$gt":gt,"$lt":lt}
-          console.log("hii")
-          }
-          else{
-          filters["price"]={"$lt":lt}
-          }
       }
-      console.log("9999")
-      if(gt!="string" && lt=="string")
-      filters["price"]={"$gt":gt}
-      console.log("44444")
-  
       
+      if (lt && gt) {
+        filters["price"] = {
+          "$gt": gt,
+          "$lt": lt
+        };
+      } else if (lt) {
+        filters["price"] = { "$lt": lt };
+      } else if (gt) {
+        filters["price"] = {"$gt": gt};
+      }
      
    console.log(filters)
   
-      const findMatch=await productModel.find({price: { '$gt': 500 }}).sort({"price":priceSort})
+      const findMatch=await productModel.find(filters).sort({"price":priceSort})
   
       return res.status(200).send({status:true,message:"Matched products",data:findMatch})
   
