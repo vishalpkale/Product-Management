@@ -59,5 +59,95 @@ const productByid = async (req, res)=>{
     }
   };
   
+  const updateProduct = async (req, res) => {
+    try {
+        let productId = req.params.productId;
+        if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "Please provide a valid productId." }) }
 
-  module.exports = {createProduct,productByid}
+        let checkProductId = await productModel.findOne({ _id: productId })
+        if (!checkProductId) { return res.status(404).send({ status: false, msg: "Product not found for the request id" }) }
+        if (checkProductId.isDeleted == true) { return res.status(404).send({ status: false, msg: "Product is already deleted" }) }
+
+        /*----------------------------------------------------------------------------------------------------------------------*/
+
+        let data = req.body;
+        let files = req.files;
+
+        /*--------------------------------------------file Updation--------------------------------------------------------------*/
+
+        if (isvalidBody(data)) { return res.status(400).send({ status: false, message: "Please provide data to update" }) }
+
+        //CHECKING ProductImage
+        if (files && files.length > 0) {
+            let uploadedFileURL = await uploadFile(files[0]);
+            data.productImage = uploadedFileURL;
+        } 
+
+        /*--------------------------------------------Title Validation------------------------------------------------------------*/
+
+        if (data.title || data.title == "string") {
+            if (isvalid(data.title)) {
+                return res.stauts(400).send({ status: false, msg: "title should be not empty string" })
+            }
+
+            //checking title duplicasy
+            let titleExist = await productModel.findOne({ title: data.title })
+            if (titleExist) { return res.status(400).send({ status: false, msg: "title is already exist" }) }
+        }
+        /*-------------------------------------------Description Validation--------------------------------------------------------*/
+
+        if (data.description || data.description == "string") {
+            if (isvalid(data.description)) {
+                return res.stauts(400).send({ status: false, msg: "Description should be not empty string" })
+            }
+        }
+        /*--------------------------------------------Price Validation------------------------------------------------------------*/
+
+
+        if (data.price || data.price == "string") {
+            if (priceRegex(data.price)) {
+                return res.stauts(400).send({ status: false, msg: "price should be not empty string" })
+            }
+           }
+
+        /*--------------------------------------------isFreeShipping validation-----------------------------------------------------*/
+         
+        if (data. isFreeShipping || data. isFreeShipping == "string") {
+            if (isvalid(data. isFreeShipping)) {
+                return res.stauts(400).send({ status: false, msg: " isFreeShipping should be not empty string" })
+            }
+
+        }
+
+        /*-----------------------------------------------style validation-------------------------------------------------------------------*/
+
+if (data. style || data. style == "string") {
+            if (isvalid(data. style)) {
+                return res.stauts(400).send({ status: false, msg: " style should be not empty string" })
+            }
+
+        }
+        /*----------------------------------------------AvailableSizes Validation------------------------------------------------------------*/
+        const validSize=function(arrayOfSize){
+            //arrayOfSize =JSON.parse(arrayOfSize)
+
+            const standardSizes=["S", "XS", "M", "X", "L", "XXL", "XL"]
+            for(let i=0;i<arrayOfSize.length;i++){
+                console.log(arrayOfSize[i])
+            if(!standardSizes.includes(arrayOfSize[i])) return false}
+            return true
+        }
+        
+
+        /*---------------------------------------------------------------------------------------------------------------------------*/   
+           const updateDetails = await productModel.findByIdAndUpdate({ _id: productId, isDeleted: false }, data, { new: true })
+           return res.status(200).send({ status: true, message: "User profile updated successfully", data: updateDetails })
+    } catch (error) {
+
+    }
+}
+
+// module.exports={updateProduct}
+
+
+  module.exports = {createProduct,productByid,updateProduct}
