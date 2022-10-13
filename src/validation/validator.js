@@ -15,10 +15,6 @@ const isValidObjectId = (value) => {
     return mongoose.Types.ObjectId.isValid(value)
 }
 
-const priceRegex = (value) => {
-    return /^\d+(,\d{1,2})?$/.test(value)
-
-};
 
 const stringRegex = (value) => {
     return /^[a-zA-Z]{2,}(?: [a-zA-Z]+){0,2}$/.test(value);
@@ -44,5 +40,21 @@ const passwordRegex = (value) => {
     return /^[\s]*[0-9a-zA-Z@#$%^&*]{8,15}[\s]*$/.test(value);
 };
 
+//-----------------------------product validation ---------------------------------//
 
-module.exports = { isValidObjectId, stringRegex, phoneRegex, emailRegex, pincodeRegex, passwordRegex, isvalidBody, isvalid ,priceRegex}
+const priceRegex = (value) => {
+    return /^\d+(,\d{1,2})?$/.test(value)
+
+};
+
+const validSize=function(arrayOfSize){
+    // arrayOfSize =JSON.parse(arrayOfSize)
+     const standardSizes=["S", "XS", "M", "X", "L", "XXL", "XL"]
+     for(let i=0;i<arrayOfSize.length;i++){
+     if(!standardSizes.includes(arrayOfSize[i]))  return false
+     }
+     return true
+ }
+ 
+
+module.exports = { isValidObjectId, stringRegex, phoneRegex, emailRegex, pincodeRegex, passwordRegex, isvalidBody, isvalid ,priceRegex,validSize}

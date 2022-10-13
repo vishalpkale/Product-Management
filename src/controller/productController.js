@@ -1,7 +1,7 @@
 const productModel = require("../model/productModel")
 const {uploadFile}=require("../aws/aws");
-const size =["S", "XS", "M", "X", "L", "XXL", "XL"]
-const {isValidObjectId,isvalid,priceRegex}=require("../validation/validator")
+
+const {isValidObjectId,isvalid,priceRegex,validSize}=require("../validation/validator")
 
 const createProduct = async (req,res)=>{
 try{
@@ -28,7 +28,7 @@ try{
 
         if(!isvalid(style))return res.status(400).send({ status: false, message: "please provide style only in string" })
 
-        if(!size.includes(availableSizes))return res.status(400).send({ status: false, message: `please provide availavalesize ${size}` })
+        if(!validSize(availableSizes))return res.status(400).send({ status: false, message: "The size can be only S, XS,M, X, L, XXL" })
 
         if(!priceRegex(installments))return res.status(400).send({ status: false, message: "please provide installments only in numbers" })
 //-----------checking duplication------//
@@ -44,7 +44,76 @@ try{
         }
 }
 
-
+const getallProduct = async function (req, res) {
+    try {
+       let {size,priceSort,name,priceGreaterThan,priceLessThan,...restall}=req.query
+       let filters={ 
+          "isDeleted":false
+       }
+       if(Object.keys(req.query).length==0){
+          const allProducts=await productModel.find(filters)
+          return res.status(200).send({status:true,message:"Success",data:allProducts})
+       }
+       if(Object.keys(restall).length>0){
+          return res.status(400).send({status:false,message:"The filters can only size,priceSort,name,priceGreaterThan or priceLessThan"})
+       }
+       if(size){
+        size=JSON.parse(size)
+       if(!validSize(size)){
+          return res.status(400).send({status:false,message:"The size can be only S, XS,M, X, L, XXL"})
+       }
+       console.log(size)
+       filters["availableSizes"]=size
+      }
+      let newsort
+      if(priceSort){
+        newsort=[1,-1,"1","-1"]
+          if( ! newsort.includes(priceSort))
+          return res.status(400).send({status:false,message:"value of priceSort can be 1 or -1 only"})
+      }
+      if(name){
+          filters["title"]={"$regex":name,"$options":"i"}////confusion about title and description
+      }
+      let gt="string"
+      if(priceGreaterThan){
+        let intergerPriceGreaterThan = parseInt(priceGreaterThan)
+          if(typeof(intergerPriceGreaterThan)!==Number && intergerPriceGreaterThan==NaN ){
+           return res.status(400).send({status:false,message:"value of priceGreaterThan can be numbers only"})
+          }
+          gt=intergerPriceGreaterThan
+      }
+      let lt="string"
+      if(priceLessThan){
+        let intergerPriceLessThan = parseInt(priceLessThan)
+          if(typeof(intergerPriceLessThan)!==Number && intergerPriceLessThan==NaN ){
+           return res.status(400).send({status:false,message:"value of priceLessThan can be numbers only"})
+          }
+          lt=intergerPriceLessThan
+          if(typeof(gt)==Number){
+          filters["price"]={"$gt":gt,"$lt":lt}
+          console.log("hii")
+          }
+          else{
+          filters["price"]={"$lt":lt}
+          }
+      }
+      console.log("9999")
+      if(gt!="string" && lt=="string")
+      filters["price"]={"$gt":gt}
+      console.log("44444")
+  
+      
+     
+   console.log(filters)
+  
+      const findMatch=await productModel.find({price: { '$gt': 500 }}).sort({"price":priceSort})
+  
+      return res.status(200).send({status:true,message:"Matched products",data:findMatch})
+  
+    } catch (err) {
+     return res.status(500).send({ status: false, message: err.message });
+    }
+  };
 
 const productByid = async (req, res)=>{
     try {
@@ -147,7 +216,24 @@ if (data. style || data. style == "string") {
     }
 }
 
-// module.exports={updateProduct}
+const deleteProduct=async function(req,res){
+    try{
+       const productId=req.params.productId
+       if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "Please provide a valid productId." }) }
+       const findProduct=await productModel.findById(productId)
+       if(findProduct.isDeleted==true || findProduct==null){
+          return res.status(404).send({status:false,message:"The product is not present or it may be deleted"})
+       }
+       const deleteById=await productModel.findByIdAndUpdate(
+          {productId},
+          {$set:{"isDeleted":true,deletedAt:Date.now()}}
+       )
+       return res.status(200).send({status:true,message:"Deleted Successfully"})
+    }
+    catch (err) {
+       return res.status(500).send({ status: false, message: err.message });
+      }
+ }
 
 
-  module.exports = {createProduct,productByid,updateProduct}
+  module.exports = {createProduct,productByid,updateProduct,getallProduct,deleteProduct}
