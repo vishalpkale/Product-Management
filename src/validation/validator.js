@@ -1,10 +1,10 @@
 const mongoose = require('mongoose')
 
 const isvalid = (value) => {
-    if (typeof value === "undefined" || typeof value === "null") return true;
-    if (typeof value === "string" && value.trim().length === 0) return true;
-    if (typeof value === "object" && Object.keys(value).length === 0) return true;
-    return false;
+    if (typeof value === "undefined" || typeof value === "null") return false;
+    if (typeof value === "string" && value.trim().length === 0) return false;
+    if (typeof value === "object" && Object.keys(value).length === 0) return false;
+    return true;
 }
 
 const isvalidBody = (value) => {
@@ -16,7 +16,7 @@ const isValidObjectId = (value) => {
 }
 
 const priceRegex = (value) => {
-    return !(/^\d+(,\d{1,2})?$/).test(value)
+    return /^\d+(,\d{1,2})?$/.test(value)
 
 };
 

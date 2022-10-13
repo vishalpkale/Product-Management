@@ -15,7 +15,9 @@ const createUser = async (req, res) => {
                     message: "for registration user data is required",
                 });
         }
-        let { fname, lname, email, profileImage, phone, password, address } = req.body;
+        let { fname, lname, email, phone, password, address } = req.body;
+        address = JSON.parse(address)
+
         if (!fname) {return res.status(400).send({ status: false, msg: "Enter your  fname" }); }
         if (!lname) {return res.status(400).send({ status: false, msg: "Enter your  lname" }); }
         if (!email) {return res.status(400).send({ status: false, msg: "Enter your  email" }); }
@@ -27,27 +29,22 @@ const createUser = async (req, res) => {
         if (!address['shipping']['street']) {return res.status(400).send({ status: false, msg: "Enter your shipping street" }); }
         if (!address.shipping.city) {return res.status(400).send({ status: false, msg: "Enter your shipping city" }); }
         if (!address.shipping.pincode) {return res.status(400).send({ status: false, msg: "Enter your shipping pincode" }); }
-        if (!address.billing) {return res.status(400).send({ status: false, msg: "Enter your billing pincode" }); }
-        if (!address.billing.street) {return res.status(400).send({ status: false, msg: "Enter your billing pincode" }); }
-        if (!address.billing.city) {return res.status(400).send({ status: false, msg: "Enter your billing pincode" }); }
+        if (!address.billing) {return res.status(400).send({ status: false, msg: "Enter your billing " }); }
+        if (!address.billing.street) {return res.status(400).send({ status: false, msg: "Enter your billing street" }); }
+        if (!address.billing.city) {return res.status(400).send({ status: false, msg: "Enter your billing city" }); }
         if (!address.billing.pincode) {return res.status(400).send({ status: false, msg: "Enter your billing pincode" }); }
 
         let files = req.files;
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
-
             profileImage = uploadedFileURL;
         } else {
             return res.status(400).send({ message: "No file found" });
         }
-
+console.log(address)
         if (!profileImage) {return res.status(400).send({ status: false, msg: "please provide profilrImage" }); }
 
-        if (!stringRegex(fname)) {
-            return res
-                .status(400)
-                .send({ status: false, message: "Please enter a valid FName" });
-        }
+        if (!stringRegex(fname)) {return res.status(400).send({ status: false, message: "Please enter a valid FName" });}
         if (!stringRegex(lname)) {
             return res
                 .status(400)
@@ -108,7 +105,7 @@ const createUser = async (req, res) => {
                     status: false,
                     message: "Please enter valid city address for shipping ",
                 });
-        if (address.shipping.street.trim().length == 0)
+        if ((address.shipping.street).trim().length == 0)
             return res
                 .status(400)
                 .send({
@@ -122,7 +119,7 @@ const createUser = async (req, res) => {
                     status: false,
                     message: "Please enter valid city address for billing ",
                 });
-        if (address.billing.street.trim().length == 0)
+        if ((address.billing.street).trim().length == 0)
             return res
                 .status(400)
                 .send({
@@ -251,8 +248,8 @@ const updateProfile = async function (req, res) {
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
             profileImage = uploadedFileURL;
-        } else {
-            return res.status(400).send({ message: "No file found" });
+        // } else {
+        //     return res.status(400).send({ message: "No file found" });
         }
         const updates = {}
         if (fname) {
@@ -342,7 +339,7 @@ const updateProfile = async function (req, res) {
                         updates["address.shipping.city"]=address.shipping.city
                 }
                 if (address.shipping.pincode) {
-                    console.log("0000kkxsa000")
+                    // console.log("0000kkxsa000")
                     if (!pincodeRegex(address.shipping.pincode))
                         return res
                             .status(400)
