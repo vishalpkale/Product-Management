@@ -13,7 +13,6 @@ try{
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
             productImage = uploadedFileURL;
-            console.log(productImage)
         } else {
             return res.status(400).send({ message: "No file found" });
         } 
@@ -30,7 +29,7 @@ try{
         if(!isvalid(style))return res.status(400).send({ status: false, message: "please provide style only in string" })
 
         if(!size.includes(availableSizes))return res.status(400).send({ status: false, message: `please provide availavalesize ${size}` })
-        
+
         if(!priceRegex(installments))return res.status(400).send({ status: false, message: "please provide installments only in numbers" })
 //-----------checking duplication------//
         let uniquetitile = await productModel.findOne({title:title})
