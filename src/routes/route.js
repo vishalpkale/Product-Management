@@ -3,7 +3,7 @@ const router = express.Router();
 const {createUser,getUserDetails,loginUser,updateProfile}= require("../controller/userController")
 const{authentication,authorization}=require("../middleware/auth")
 const{createProduct,productByid,updateProduct,getallProduct,deleteProduct}= require("../controller/productController")
-
+const{createCard,updateCard,getCard,deleteCard}=require("../controller/cartController")
 
 //--------------------------> (This is test api ) <-------------------------------------//
 router.get("/test-me", async function (req, res) {
@@ -21,5 +21,10 @@ router.get('/products',getallProduct)
 router.get('/products/:productId',productByid)
 router.put('/products/:productId',updateProduct)
 router.delete('/products/:productId',deleteProduct)
+
+router.post('/users/:userId/cart',createCard)
+router.put('/users/:userId/cart',updateCard) 
+router.get('/users/:userId/cart',getCard)
+router.delete('/users/:userId/cart',deleteCard)
 
 module.exports = router;
