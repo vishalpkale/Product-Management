@@ -3,12 +3,11 @@ const mongoose = require('mongoose')
 const isvalid = (value) => {
     if (typeof value === "undefined" || typeof value === "null") return false;
     if (typeof value === "string" && value.trim().length === 0) return false;
-    if (typeof value === "object" && Object.keys(value).length === 0) return false;
-    return true;
+   return true;
 }
 
 const isvalidBody = (value) => {
-    return Object.keys(value).length === 0;
+    return Object.keys(value).length > 0;
 }
 
 const isValidObjectId = (value) => {

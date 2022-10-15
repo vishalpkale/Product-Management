@@ -4,10 +4,11 @@ const cartModel = require("../model/cartModel")
 const userModel = require("../model/userModel")
 
 const { isValidObjectId } = require("../validation/validator")
+const { findById } = require("../model/userModel")
 
 
 
-const createCard = async function (req, res) {
+const createCart = async function (req, res) {
     try {
         const userId = req.params.userId
         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
@@ -71,7 +72,7 @@ const createCard = async function (req, res) {
     }
 }
 
-const updateCard = async function (req, res) {
+const updateCart = async function (req, res) {
     try {
         const userId = req.params.userId
         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
@@ -83,21 +84,33 @@ const updateCard = async function (req, res) {
     }
 }
 
-const getCard = async function (req, res) {
+const getCart = async function (req, res) {
     try {
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }
 }
+//====================================DELETE API====================================================================//
 
-const deleteCard = async function (req, res) {
+const deleteCart = async (req, res) => {
     try {
-
-    } catch (err) {
-        return res.status(500).send({ status: false, message: err.message });
+        let userId = req.params.userId
+        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) };
+       
+        const userExist = await userModel.findById(userId)
+        if(!userExist)return res.status(404).send({status:false,msg:"user not found"})
+    
+        const cartExist = await userModel.findById(userId)
+        if(!cartExist)return res.status(404).send({status:false,msg:"cart not found"})
+    
+        let cart = await cartModel.findByIdAndUpdate((userId),{items:[],totalItems:0,totalPrice:0},{new:true})
+        return res.status(204).send({ status: false, msg: "CART DELETED SUCESSFULLY", data:cart})
+    } catch (error) {
+        return res.status(500).send({status:false,err:error.message})
     }
 }
 
 
-module.exports = { createCard, updateCard, getCard, deleteCard }
+
+module.exports = { createCart, updateCart, getCart, deleteCart }
