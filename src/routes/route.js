@@ -4,6 +4,7 @@ const {createUser,getUserDetails,loginUser,updateProfile}= require("../controlle
 const{authentication,authorization}=require("../middleware/auth")
 const{createProduct,productByid,updateProduct,getallProduct,deleteProduct}= require("../controller/productController")
 const{createCard,updateCard,getCard,deleteCard}=require("../controller/cartController")
+const{ createOrder,updateOrder}=require('../controller/orderController')
 
 //--------------------------> (This is test api ) <-------------------------------------//
 router.get("/test-me", async function (req, res) {
@@ -26,5 +27,10 @@ router.post('/users/:userId/cart',createCard)
 router.put('/users/:userId/cart',updateCard) 
 router.get('/users/:userId/cart',getCard)
 router.delete('/users/:userId/cart',deleteCard)
+
+
+router.post('/users/:userId/orders',createOrder)
+router.put('/users/:userId/orders',updateOrder)
+
 
 module.exports = router;

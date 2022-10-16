@@ -32,9 +32,10 @@ const productSchema = new mongoose.Schema({
     style: { type: String },
     availableSizes: {
         type: [String],
+        required: true,
         enum: ["S", "XS", "M", "X", "L", "XXL", "XL"]
     },
-    installments: { type: Number },
+    installments: { type: Number ,default: undefined },
     deletedAt: {
         type: Date,
         default: undefined

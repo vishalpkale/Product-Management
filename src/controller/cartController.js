@@ -4,33 +4,40 @@ const cartModel = require("../model/cartModel")
 const userModel = require("../model/userModel")
 
 const { isValidObjectId } = require("../validation/validator")
-const { findById } = require("../model/userModel")
 
 
 
 const createCart = async function (req, res) {
     try {
         const userId = req.params.userId
-        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
         const { cartId, productId } = req.body
+      //-------------------------------------checking user------------------------------------------//
+        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
+        const checkUser=await userModel.findById(userId)
+        if (checkUser == null || checkUser.isDeleted == true) {
+            return res.status(404).send({ status: false, message: "user not found or it may be deleted" })
+        }
+        //-------------------------------------checking product------------------------------------------//
         if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "Please provide a valid productId." }) }
         const checkProduct = await productModel.findById(productId)
         if (checkProduct == null || checkProduct.isDeleted == true) {
             return res.status(404).send({ status: false, message: "Product not found or it may be deleted" })
         }
-        let itemForAdd =
-        {
+        //-------------------------------------------------------------------------------------------//
+        let itemForAdd = {
             "productId": productId,
             "quantity": 1
         }
+
         if (cartId) {
+       //-------------------------------------checking cart------------------------------------------//
             if (!isValidObjectId(cartId)) { return res.status(400).send({ status: false, message: "Please provide a valid cartId." }) }
-            const checkCard = await cartModel.findById(cartId)
-            if (checkCard == null || checkCard.isDeleted == true) {
+            const checkCart = await cartModel.findById(cartId)
+            if (checkCart == null || checkCart.isDeleted == true) {
                 return res.status(404).send({ status: false, message: "cart not found or it may be deleted" })
             }
-
-            let arr = checkCard.items
+       //-------------------------------------------------------------------------------------------//
+            let arr = checkCart.items
             for (let i = 0; i < arr.length; i++) {
                 if (arr[i].productId == itemForAdd.productId) {
                     arr[i].quantity = arr[i].quantity + itemForAdd.quantity;
@@ -41,28 +48,33 @@ const createCart = async function (req, res) {
                     break
                 }
             }
-            const dataForCreate1 = {
+            const dataForUpdate = {
                 "userId": userId,
                 "items": arr,
-                "totalPrice": checkProduct.price + checkCard.totalPrice,
+                "totalPrice": checkProduct.price + checkCart.totalPrice,
                 "totalItems": arr.length///confuse in:when quantity of product is 2 at that time what should be totalItems
             }
             const updateCard = await cartModel.findByIdAndUpdate(
                 { "_id": cartId },
-                { $set: dataForCreate1 },
+                { $set: dataForUpdate }, //confuse in output i.e. in output whether details of product are to be shown or not
                 { new: true }
             )
-            return res.status(200).send({ status: true, message: "Cart Created", data: updateCard })///confuse about status code
+            return res.status(200).send({ status: true, message: "Cart updated", data: updateCard })///confuse about status code
 
         }
         else {
+            const checkCart=await cartModel.findOne({"userId":userId})
+            if(checkCart){
+                return res.status(400).send({status: false, message:"A cart with this userId already present try to edit that cart"})
+            }
+
             const dataForCreate = {
                 "userId": userId,
                 "items": [itemForAdd],
                 "totalPrice": checkProduct.price,
                 "totalItems": 1
             }
-            const createCart1 = await cartModel.create(dataForCreate)
+            const createCart1 = await cartModel.create(dataForCreate)//confuse in output i.e. in output whether details of product are to be shown or not
 
             return res.status(201).send({ status: true, message: "Card Created", data: createCart1 })
 
@@ -75,9 +87,62 @@ const createCart = async function (req, res) {
 const updateCart = async function (req, res) {
     try {
         const userId = req.params.userId
+        const {productId ,cartId,removeProduct}=req.body
+        //-------------------------------------checking user------------------------------------------//
         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
+        // const checkUser=await userModel.findById(userId)
+        // if (checkUser == null || checkUser.isDeleted == true) {
+        //     return res.status(404).send({ status: false, message: "user not found or it may be deleted" })
+        // }
+        
+        //-------------------------------------checking cart------------------------------------------//
 
-        //const {productId ,cartId}
+        if (!isValidObjectId(cartId)) { return res.status(400).send({ status: false, message: "Please provide a valid cartId." }) }
+        const checkCart = await cartModel.findOne({"_id":cartId,"userId":userId})
+        if (checkCart == null || checkCart.isDeleted == true) {
+            return res.status(404).send({ status: false, message: "cart not found either it may be deleted or there is conflict(check userId and cartId are from the same document or not)" })
+        }
+
+      //-------------------------------------checking product------------------------------------------//
+        if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "Please provide a valid productId." }) }
+        const checkProduct = await productModel.findById(productId)
+        if (checkProduct == null || checkProduct.isDeleted == true) {
+            return res.status(404).send({ status: false, message: "Product not found or it may be deleted" })
+        }
+      //-----------------------------------------------------------------------------------------------//
+      let arr = checkCart.items
+      let quantity=0
+      for (let i = 0; i < arr.length; i++) {
+          if (arr[i].productId == productId) {
+            quantity=arr[i].quantity //assigning value to quantity
+            if(quantity==0 || removeProduct==0){
+                arr.splice(i,1)
+                break
+                }
+           else if(quantity >= removeProduct){
+            arr[i].quantity = quantity - removeProduct;
+            quantity=arr[i].quantity///assigning value to quantity after reducing
+            break
+            }
+            else if(quantity < removeProduct){
+                return res.status(400).send({status:false,message:"removeProduct value cannot greater than available quantity"})
+            }
+            
+         }               
+    }
+
+    const dataForUpdation = {
+        "userId": userId,
+        "items": arr,
+        "totalPrice":checkCart.totalPrice-(checkProduct.price*quantity),
+        "totalItems": arr.length
+    }
+    const updateCard = await cartModel.findByIdAndUpdate(
+        { "_id": cartId },
+        { $set: dataForUpdation }, //confuse in output i.e. in output whether details of product are to be shown or not
+        { new: true }
+    )
+    return res.status(200).send({ status: true, message: "Cart updated", data: updateCard })
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
@@ -91,7 +156,6 @@ const getCart = async function (req, res) {
         return res.status(500).send({ status: false, message: err.message });
     }
 }
-//====================================DELETE API====================================================================//
 
 const deleteCart = async (req, res) => {
     try {
@@ -112,5 +176,4 @@ const deleteCart = async (req, res) => {
 }
 
 
-
-module.exports = { createCart, updateCart, getCart, deleteCart }
+module.exports = { createCart, updateCart, getCart, deleteCart }   
