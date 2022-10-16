@@ -151,7 +151,16 @@ const updateCart = async function (req, res) {
 
 const getCart = async function (req, res) {
     try {
-
+        let userId = req.params.userId
+        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
+    let user = await userModel.findById(userId)
+    if(!user){ return res.status(400).send({ status: false, message: "this user doesnot exists" }) }
+    let cart = await cartModel.findOne({"userId":userId})
+    if(!cart){ return res.status(400).send({ status: false, message: "this user doesnot have any cart exists" }) }
+let productId = cart.items[0].productId.toString()
+let product = await productModel.findById(productId)
+let data = {"items":(cart.items),"product":product}
+return res.status(200).send({status:true,message:"Success",data:data})
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }

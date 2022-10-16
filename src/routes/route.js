@@ -3,7 +3,7 @@ const router = express.Router();
 const {createUser,getUserDetails,loginUser,updateProfile}= require("../controller/userController")
 const{authentication,authorization}=require("../middleware/auth")
 const{createProduct,productByid,updateProduct,getallProduct,deleteProduct}= require("../controller/productController")
-const{createCard,updateCard,getCard,deleteCard}=require("../controller/cartController")
+const{getCart, createCart, updateCart, deleteCart}=require("../controller/cartController")
 const{ createOrder,updateOrder}=require('../controller/orderController')
 
 //--------------------------> (This is test api ) <-------------------------------------//
@@ -23,14 +23,14 @@ router.get('/products/:productId',productByid)
 router.put('/products/:productId',updateProduct)
 router.delete('/products/:productId',deleteProduct)
 
-router.post('/users/:userId/cart',createCard)
-router.put('/users/:userId/cart',updateCard) 
-router.get('/users/:userId/cart',getCard)
-router.delete('/users/:userId/cart',deleteCard)
+router.post('/users/:userId/cart',createCart)
+router.put('/users/:userId/cart',updateCart) 
+router.get('/users/:userId/cart',getCart)
+router.delete('/users/:userId/cart',deleteCart)
 
 
-router.post('/users/:userId/orders',createOrder)
-router.put('/users/:userId/orders',updateOrder)
+// router.post('/users/:userId/orders',createOrder)
+// router.put('/users/:userId/orders',updateOrder)
 
 
 module.exports = router;
