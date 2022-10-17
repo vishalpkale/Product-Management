@@ -67,7 +67,7 @@ const getallProduct = async function (req, res) {
             }
             console.log(size)
             filters["availableSizes"] = size
-        }
+        } 
         let newsort
         if (priceSort) {
             newsort = [1, -1, "1", "-1"]

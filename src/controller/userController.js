@@ -2,7 +2,7 @@ const userModel = require('../model/userModel')
 const bcrypt = require('bcrypt');
 const {uploadFile}=require("../aws/aws");
 const jwt = require('jsonwebtoken');
-const {isValidObjectId,stringRegex,phoneRegex,emailRegex,pincodeRegex,passwordRegex}=require("../validation/validator")
+const {validImage,isValidObjectId,stringRegex,phoneRegex,emailRegex,pincodeRegex,passwordRegex}=require("../validation/validator")
 
 const createUser = async (req, res) => {
     try {
@@ -18,31 +18,31 @@ const createUser = async (req, res) => {
         let { fname, lname, email, phone, password, address } = req.body;
         address = JSON.parse(address)
 
-        if (!fname) {return res.status(400).send({ status: false, msg: "Enter your  fname" }); }
-        if (!lname) {return res.status(400).send({ status: false, msg: "Enter your  lname" }); }
-        if (!email) {return res.status(400).send({ status: false, msg: "Enter your  email" }); }
-        // if (!profileImage) {return res.status(400).send({ status: false, msg: "Enter your  profilrImage" }); }
-        if (!phone) {return res.status(400).send({ status: false, msg: "Enter your  phone" }); }
-        if (!password) {return res.status(400).send({ status: false, msg: "Enter your  password" }); }
-        if (!address) {return res.status(400).send({ status: false, msg: "Enter your  Address" }); }
-        if (!address['shipping']) {return res.status(400).send({ status: false, msg: "Enter your shipping Address" }); }
-        if (!address['shipping']['street']) {return res.status(400).send({ status: false, msg: "Enter your shipping street" }); }
-        if (!address.shipping.city) {return res.status(400).send({ status: false, msg: "Enter your shipping city" }); }
-        if (!address.shipping.pincode) {return res.status(400).send({ status: false, msg: "Enter your shipping pincode" }); }
-        if (!address.billing) {return res.status(400).send({ status: false, msg: "Enter your billing " }); }
-        if (!address.billing.street) {return res.status(400).send({ status: false, msg: "Enter your billing street" }); }
-        if (!address.billing.city) {return res.status(400).send({ status: false, msg: "Enter your billing city" }); }
-        if (!address.billing.pincode) {return res.status(400).send({ status: false, msg: "Enter your billing pincode" }); }
-
+        if (!fname) {return res.status(400).send({ status: false, message: "Enter your  fname" }); }
+        if (!lname) {return res.status(400).send({ status: false, message: "Enter your  lname" }); }
+        if (!email) {return res.status(400).send({ status: false, message: "Enter your  email" }); }
+        if (!phone) {return res.status(400).send({ status: false, message: "Enter your  phone" }); }
+        if (!password) {return res.status(400).send({ status: false, message: "Enter your  password" }); }
+        if (!address) {return res.status(400).send({ status: false, message: "Enter your  Address" }); }
+        if (!address['shipping']) {return res.status(400).send({ status: false, message: "Enter your shipping Address" }); }
+        if (!address['shipping']['street']) {return res.status(400).send({ status: false, message: "Enter your shipping street" }); }
+        if (!address.shipping.city) {return res.status(400).send({ status: false, message: "Enter your shipping city" }); }
+        if (!address.shipping.pincode) {return res.status(400).send({ status: false, message: "Enter your shipping pincode" }); }
+        if (!address.billing) {return res.status(400).send({ status: false, message: "Enter your billing " }); }
+        if (!address.billing.street) {return res.status(400).send({ status: false, message: "Enter your billing street" }); }
+        if (!address.billing.city) {return res.status(400).send({ status: false, message: "Enter your billing city" }); }
+        if (!address.billing.pincode) {return res.status(400).send({ status: false, message: "Enter your billing pincode" }); }
+         
+        let profileImage
         let files = req.files;
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
             profileImage = uploadedFileURL;
         } else {
-            return res.status(400).send({ message: "No file found" });
+            return res.status(400).send({ message: "please provide profileImage" });
         }
-console.log(address)
-        if (!profileImage) {return res.status(400).send({ status: false, msg: "please provide profilrImage" }); }
+
+        if (!profileImage) {return res.status(400).send({ status: false, message: "please provide profileImage" }); }
 
         if (!stringRegex(fname)) {return res.status(400).send({ status: false, message: "Please enter a valid FName" });}
         if (!stringRegex(lname)) {
@@ -131,10 +131,10 @@ console.log(address)
                     .status(400)
                     .send({ status: false, message: "Please enter valid billing pincode" });
 
-        const salt = await bcrypt.genSalt(10);
-        password = await bcrypt.hash(req.body.password, salt);
+       
+        password = await bcrypt.hash(req.body.password, 10);
         // console.log(password);
-        const datas={
+        const dataForCreation={
             fname: fname,
             lname: lname,
             email: email,
@@ -143,12 +143,12 @@ console.log(address)
             password: password,
             address: address,
         };
-        let savedData = await userModel.create(datas);
+        const savedData = await userModel.create(dataForCreation);
         return res
             .status(201)
             .send({ status: true, message: "Success", data: savedData });
     } catch (err) {
-        res.status(500).send({ status: false, message: err.message });
+        return res.status(500).send({ status: false, error: err.message });
     }
 };
 
@@ -157,8 +157,7 @@ console.log(address)
 const getUserDetails = async function (req, res) {
     try {
       const userId = req.params.userId;
-    //   userId = "62fd292d338c06ccba81c98d";
-  
+    
       if (!userId)
         return res
           .status(400)
