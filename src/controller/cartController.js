@@ -57,10 +57,10 @@ const createCart = async function (req, res) {
             }
             const updateCard = await cartModel.findByIdAndUpdate(
                 { "_id": cartId },
-                { $set: dataForUpdate }, //confuse in output i.e. in output whether details of product are to be shown or not
+                { $set: dataForUpdate }, 
                 { new: true }
-            )
-            return res.status(200).send({ status: true, message: "Cart updated", data: updateCard })///confuse about status code
+            ).populate("items.productId",("price title description productImage availableSizes"))
+            return res.status(200).send({ status: true, message: "Cart updated", data: updateCard })
 
         }
         else {
@@ -75,7 +75,7 @@ const createCart = async function (req, res) {
                 "totalPrice": checkProduct.price,
                 "totalItems": 1
             }
-            const createCart1 = await cartModel.create(dataForCreate)//confuse in output i.e. in output whether details of product are to be shown or not
+            const createCart1 = await cartModel.create(dataForCreate).populate("items.productId",("price title description productImage availableSizes"))
 
             return res.status(201).send({ status: true, message: "Card Created", data: createCart1 })
 
@@ -142,7 +142,7 @@ const updateCart = async function (req, res) {
             { "_id": cartId },
             { $set: dataForUpdation }, //confuse in output i.e. in output whether details of product are to be shown or not
             { new: true }
-        )
+        ).populate("items.productId",("price title description productImage availableSizes"))
         return res.status(200).send({ status: true, message: "Cart updated", data: updateCard })
 
     } catch (err) {
@@ -156,12 +156,9 @@ const getCart = async function (req, res) {///price/title/size/image
         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
         let user = await userModel.findById(userId)
         if (!user) { return res.status(400).send({ status: false, message: "this user doesnot exists" }) }
-        let cart = await cartModel.findOne({ "userId": userId })
+        let cart = await cartModel.findOne({ "userId": userId }).populate("items.productId",("price title description productImage availableSizes"))
         if (!cart) { return res.status(400).send({ status: false, message: "this user doesnot have any cart exists" }) }
-        let productId = cart.items[0].productId.toString()
-        let product = await productModel.findById(productId)
-        let data = { "items": (cart.items), "product": product }
-        return res.status(200).send({ status: true, message: "Success", data: data })
+        return res.status(200).send({ status: true, message: "Success", data: cart })
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }
