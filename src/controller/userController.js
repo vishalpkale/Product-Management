@@ -191,20 +191,6 @@ const loginUser = async function (req, res) {
         if (Object.keys(req.body).length == 0) {
             return res.status(400).send({ status: false, message: "for login user data is required" })
         }
-        // if (!emailRegex(email)) {
-        //     return res
-        //         .status(400)
-        //         .send({ status: false, message: "Please Enter valid Email" });
-        // }
-        if (!passwordRegex(password)) {
-            return res
-                .status(400)
-                .send({
-                    status: false,
-                    message: "please Enter valid Password and it's length should be 8-15",
-                });
-        }
-
       const user = await userModel.findOne({ email: email});
       if (!user) {
         return res.status(400).send({ status: false, message: "Please enter your correct emailId" });
@@ -234,7 +220,20 @@ const updateProfile = async function (req, res) {
         return res
           .status(400)
           .send({ status: false, message: "Please provide a valid userId." });
-        if (Object.keys(req.body).length == 0) {
+       
+        let { fname, lname, email,  phone, password, address } = req.body;
+        let updates = {}
+
+        let files = req.files;
+        let profileImage
+        if (files && files.length > 0) {
+            let uploadedFileURL = await uploadFile(files[0]);
+
+            profileImage = uploadedFileURL;
+            
+            updates["profileImage"] = profileImage
+        }
+       if (Object.keys(req.body).length == 0 && !profileImage) {
             return res
                 .status(400)
                 .send({
@@ -242,15 +241,6 @@ const updateProfile = async function (req, res) {
                     message: "for updation user data is required",
                 });
         }
-        let { fname, lname, email, profileImage, phone, password, address } = req.body;
-        let files = req.files;
-        if (files && files.length > 0) {
-            let uploadedFileURL = await uploadFile(files[0]);
-            profileImage = uploadedFileURL;
-        // } else {
-        //     return res.status(400).send({ message: "No file found" });
-        }
-        const updates = {}
         if (fname) {
             if (!stringRegex(fname)) {
                 return res
@@ -316,6 +306,7 @@ const updateProfile = async function (req, res) {
             updates["password"]=password 
         }
         if (address) {
+            address = JSON.parse(address)
             if (address.shipping) {
                 if (address.shipping.street) {
                     if (address.shipping.street.trim().length == 0)
@@ -338,7 +329,6 @@ const updateProfile = async function (req, res) {
                         updates["address.shipping.city"]=address.shipping.city
                 }
                 if (address.shipping.pincode) {
-                    // console.log("0000kkxsa000")
                     if (!pincodeRegex(address.shipping.pincode))
                         return res
                             .status(400)
@@ -384,7 +374,7 @@ const updateProfile = async function (req, res) {
                 }
             }
         }
-        
+        console.log(updates)
             let updateUser = await userModel.findByIdAndUpdate(
                 { _id: userId },
                 { $set:  updates},
