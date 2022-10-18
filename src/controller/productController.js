@@ -1,7 +1,7 @@
 const productModel = require("../model/productModel")
 const { uploadFile } = require("../aws/aws");
 
-const { isValidObjectId, isvalid, priceRegex, validSize, isvalidBody } = require("../validation/validator")
+const { isValidObjectId, isvalid, priceRegex, validSize, isvalidBody,stringRegex } = require("../validation/validator")
 //=====================================post API===============================================================================//
 const createProduct = async (req, res) => {
     try {
@@ -10,7 +10,7 @@ const createProduct = async (req, res) => {
         }
         //destructing
         let { title, description, price, currencyId, isFreeShipping, style, availableSizes, installments } = req.body
-
+        let productImage
         let files = req.files;
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
@@ -20,17 +20,17 @@ const createProduct = async (req, res) => {
         }
         if (!productImage) { return res.status(400).send({ status: false, message: "please provide productImage" }); }
 
-        if (!isvalid(title)) return res.status(400).send({ status: false, message: "please provide tittle and it should be in string" })
+        if (!(title) || (!stringRegex(title))) return res.status(400).send({ status: false, message: "please provide tittle and it should be in string" })
 
-        if (!isvalid(description)) return res.status(400).send({ status: false, message: "please provide description it should be in string" })
+        if (!stringRegex(description) || !description) return res.status(400).send({ status: false, message: "please provide description it should be in string" })
 
-        if (!price || !priceRegex(price)) return res.status(400).send({ status: false, message: "please provide price only in numbers" })
+        if (!price || !priceRegex(price)) return res.status(400).send({ status: false, message: "please provide price and it should be only numbers" })
 
         if (currencyId != "INR") return res.status(400).send({ status: false, message: "Only indian currency id allowed for example INR" })
 
-        if (!isvalid(style)) return res.status(400).send({ status: false, message: "please provide style only in string" })
+        if ((!style) || (!stringRegex(style))) return res.status(400).send({ status: false, message: "please provide style only in string" })
 
-        if (!validSize(availableSizes)) return res.status(400).send({ status: false, message: "The size can be only S, XS,M, X, L, XXL" })
+        if ((!availableSizes) || !validSize(availableSizes)) return res.status(400).send({ status: false, message: "The size can be only S, XS,M, X, L, XXL" })
 
         if (!priceRegex(installments)) return res.status(400).send({ status: false, message: "please provide installments only in numbers" })
         //-----------checking duplication------//
