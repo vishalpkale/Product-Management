@@ -1,12 +1,5 @@
 const mongoose = require('mongoose')
 
-const isvalid = (value) => {
-    value=value.trim()
-    if (typeof value === "undefined" || typeof value === "null") return false;
-    if (typeof value === "string" && value.trim().length === 0) return false;
-   return true;
-}
-
 const isvalidBody = (value) => {
     return Object.keys(value).length > 0;
 }
@@ -17,8 +10,7 @@ const isValidObjectId = (value) => {
 
 
 const stringRegex = (value) => {
-    value=value.trim()
-    return /^[a-zA-Z]{2,}(?: [a-zA-Z]+){0,2}$/.test(value);
+    return /([a-zA-z])+/g.test(value);
 };
 
 
@@ -53,18 +45,20 @@ if(!imageTypes.includes(value.mimetype)){ return false }
 //-----------------------------product validation ---------------------------------//
 
 const priceRegex = (value) => {
-    return /^\d+(,\d{1,2})?$/.test(value)
+    return /^([1-9])+([0-9])*?$/.test(value)
 
 };
 
 const validSize=function(arrayOfSize){
-    // arrayOfSize =JSON.parse(arrayOfSize)
-     const standardSizes=["S", "XS", "M", "X", "L", "XXL", "XL"]
-     for(let i=0;i<arrayOfSize.length;i++){
-     if(!standardSizes.includes(arrayOfSize[i]))  return false
-     }
+    let size1 = ["S", "XS", "M", "X", "L", "XXL", "XL"];
+            let size2 = arrayOfSize.toUpperCase().split(",").map((x) => x.trim())
+            for (let i = 0; i < size2.length; i++) {
+                if (!size1.includes(size2[i])) {
+                    return false
+                }
+          }
      return true
  }
  
 
-module.exports = { validImage,isValidObjectId, stringRegex, phoneRegex, emailRegex, pincodeRegex, passwordRegex, isvalidBody, isvalid ,priceRegex,validSize}
+module.exports = { validImage,isValidObjectId, stringRegex, phoneRegex, emailRegex, pincodeRegex, passwordRegex, isvalidBody ,priceRegex,validSize}

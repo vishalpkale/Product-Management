@@ -7,16 +7,22 @@ const {validImage,isValidObjectId,stringRegex,phoneRegex,emailRegex,pincodeRegex
 const createUser = async (req, res) => {
     try {
         
-        if (Object.keys(req.body).length == 0) {
+        let files = req.files;
+        let profileImage
+        if (files && files.length > 0) {
+            let uploadedFileURL = await uploadFile(files[0]);
+            profileImage = uploadedFileURL;  
+        }
+       if (Object.keys(req.body).length == 0 && !profileImage) {
             return res
                 .status(400)
                 .send({
                     status: false,
-                    message: "for registration user data is required",
+                    message: "for updation user data is required",
                 });
         }
         let { fname, lname, email, phone, password, address } = req.body;
-        address = JSON.parse(address)
+       
 
         if (!fname) {return res.status(400).send({ status: false, message: "Enter your  fname" }); }
         if (!lname) {return res.status(400).send({ status: false, message: "Enter your  lname" }); }
@@ -24,6 +30,7 @@ const createUser = async (req, res) => {
         if (!phone) {return res.status(400).send({ status: false, message: "Enter your  phone" }); }
         if (!password) {return res.status(400).send({ status: false, message: "Enter your  password" }); }
         if (!address) {return res.status(400).send({ status: false, message: "Enter your  Address" }); }
+        address = JSON.parse(address)
         if (!address['shipping']) {return res.status(400).send({ status: false, message: "Enter your shipping Address" }); }
         if (!address['shipping']['street']) {return res.status(400).send({ status: false, message: "Enter your shipping street" }); }
         if (!address.shipping.city) {return res.status(400).send({ status: false, message: "Enter your shipping city" }); }
@@ -33,14 +40,6 @@ const createUser = async (req, res) => {
         if (!address.billing.city) {return res.status(400).send({ status: false, message: "Enter your billing city" }); }
         if (!address.billing.pincode) {return res.status(400).send({ status: false, message: "Enter your billing pincode" }); }
          
-        let profileImage
-        let files = req.files;
-        if (files && files.length > 0) {
-            let uploadedFileURL = await uploadFile(files[0]);
-            profileImage = uploadedFileURL;
-        } else {
-            return res.status(400).send({ message: "please provide profileImage" });
-        }
 
         if (!profileImage) {return res.status(400).send({ status: false, message: "please provide profileImage" }); }
 

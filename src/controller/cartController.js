@@ -75,7 +75,9 @@ const createCart = async function (req, res) {
                 "totalPrice": checkProduct.price,
                 "totalItems": 1
             }
-            const createCart1 = await cartModel.create(dataForCreate).populate("items.productId",("price title description productImage availableSizes"))
+            const createCart1 = await cartModel.create(dataForCreate).populate({path:"items.productId",model:productModel,select:["price","title", "description","productImage", "availableSizes"]})
+
+
 
             return res.status(201).send({ status: true, message: "Card Created", data: createCart1 })
 
