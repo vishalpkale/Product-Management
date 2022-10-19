@@ -1,8 +1,7 @@
-const mongoose = require("mongoose")
-const productModel = require("../model/productModel")
 const orderModel = require("../model/orderModel")
 const userModel = require("../model/userModel")
-const { isValidObjectId } = require("../validation/validator")
+const cartModel=require('../model/cartModel')
+const { isValidObjectId ,isvalidBody} = require("../validation/validator")
 
 const isValidstatus=(value)=>{
     const statuses=["pending", "completed", "cancled"]
@@ -13,81 +12,60 @@ const isValidstatus=(value)=>{
 const createOrder = async (req, res) => {
     try {
       let userId = req.params.userId;
-  
-      if (!isvalid(userId)) {
-          return res.status(400).send({ status: false, message: "User ID is missing" });
-      }
-  
-      if (!isValidObjectId(userId)) {
+      if (!userId || !isValidObjectId(userId)) {
           return res.status(400).send({ status: false, message: "Please provide valid user Id" });
       }
   
-      let data = req.body;
+      if (!isvalidBody(req.body))
+          return res.status(400).send({ status: false, message: "provide data to make order" });
   
+      let { cartId, status, cancellable } = req.body;
   
-      if (!isvalidBody(data))
-          return res.status(400).send({ status: false, message: "Body cannot be empty" });
-  
-      let { cartId, status, cancellable } = data;
-  
-      if (!cartId)
-          return res.status(400).send({ status: false, message: "Cart ID is required" });
-  
-      // if (!isValidObjectId(cartId)) {
-      //     return res.status(400).send({ status: false, message: "Cart ID is invaild" });
-      // }
-  
-      if (!isValidObjectId(cartId)) {
-          return res.status(400).send({ status: false, message: "Please provide valid cart Id" });
-      }
+      if (!cartId || !isValidObjectId(cartId))
+          return res.status(400).send({ status: false, message: "cartId is required and should be valid" });
   
       let findCart = await cartModel.findOne({ userId: userId });
   
       if (!findCart)
-          return res.status(404).send({ status: false, message:" No such cart exist"});
+          return res.status(404).send({ status: false, message:"No cart found with this cartId"});
   
       if (findCart.items.length === 0)
-          return res.status(400).send({ status: false, message: "No Item in Cart" });
+          return res.status(400).send({ status: false, message: "No Item present in Cart" });
   
+  const orderData={}
+      if (status) {
+          if ((status != "pending")  && (status!="completed"))
+              return res.status(400).send({ status: false, message: "status should be either 'pending' or 'completed'" });
+              orderData["status"]=status
+        }
   
-      if (status || typeof status == "string") {
-          //checking if the status is valid
-          if (!isvalid(status)) {
-              return res.status(400).send({ status: false, message: " Please provide status" })
-          }
-          if (!isValidstatus(status))
-              return res.status(400).send({ status: false, message: "Status should be one of 'pending', 'completed', 'cancelled'" });
-      }
-  
-      if (cancellable || typeof cancellable == 'string') {
-          if (!isvalid(cancellable))
-              return res.status(400).send({ status: false, message: "cancellable should not contain white spaces" });
-          if (typeof cancellable == 'string') {
-              //converting it to lowercase and removing white spaces
+      if (cancellable) {
               cancellable = cancellable.toLowerCase().trim();
-              if (cancellable == 'true' || cancellable == 'false') {
-                  //converting from string to boolean
-                  cancellable = JSON.parse(cancellable)
-              } else {
-                  return res.status(400).send({ status: false, message: "Please enter either 'true' or 'false'" });
+              let arr =[true,false,"true","false"]
+              if (!arr.includes(cancellable)) {
+                return res.status(400).send({ status: false, message: "Please enter either 'true' or 'false'" });
               }
-          }
+              orderData["cancellable"]=cancellable
       }
   
       let totalQuantity = 0;
-      for (let i = 0; i < findCart.items.length; i++)
-          totalQuantity += findCart.items[i].quantity;
+      for (let i = 0; i < findCart.items.length; i++){
+          totalQuantity = totalQuantity+findCart.items[i].quantity;
+      }
   
   
-      data.userId = userId;
-      data.items = findCart.items;
-      data.totalPrice = findCart.totalPrice;
-      data.totalItems = findCart.totalItems;
-      data.totalQuantity = totalQuantity;
+  orderData["userId"] = userId;
+  orderData["items"] = findCart.items;
+  orderData["totalPrice"] = findCart.totalPrice;
+  orderData["totalItems"] = findCart.totalItems;
+  orderData["totalQuantity"] = totalQuantity;
   
-      let result = await orderModel.create(data);
-      await cartModel.updateOne({ _id: findCart._id },
-          { items: [], totalPrice: 0, totalItems: 0 });
+  
+      let result = await orderModel.create(orderData);
+      await cartModel.updateOne(
+         { "_id": findCart._id },
+         {$set: { items: [], totalPrice: 0, totalItems: 0 }}
+         );
   
       return res.status(201).send({ status: true, message: "Success", data: result })
   } catch (error) {
@@ -104,7 +82,7 @@ const updateOrder=async function(req,res){
     try{
         //-----------------------------user validation-----------------------------------------//
          const userId=req.params.userId
-         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
+         if (!userId || !isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
          const checkUser=await userModel.findById(userId)
          if (checkUser == null || checkUser.isDeleted == true) {
              return res.status(404).send({ status: false, message: "user not found or it may be deleted" })
@@ -112,18 +90,22 @@ const updateOrder=async function(req,res){
          //-----------------------------------------------------------------------------------------//
          const {orderId,status}=req.body
 
-         if(!isValidstatus(status)){
-            return res.status(400).send({status:false,message:" value of status can be one of  pending,completed or cancled"})
+         if(!status || !isValidstatus(status)){
+            return res.status(400).send({status:false,message:"Provide value for status one of these pending,completed or cancled"})
          }
          //----------------------------------------order validation---------------------------//
-         if (!isValidObjectId(orderId)) { return res.status(400).send({ status: false, message: "Please provide a valid orderId." }) }
-         const checkOrder=await userModel.findById(userId)
+         if (!orderId || !isValidObjectId(orderId)) { return res.status(400).send({ status: false, message: "Please provide a valid orderId." }) }
+         const checkOrder=await orderModel.findById(orderId)
          if (checkOrder == null || checkOrder.isDeleted == true) {
-             return res.status(404).send({ status: false, message: "user not found or it may be deleted" })
+             return res.status(404).send({ status: false, message: "order not found or it may be deleted" })
          }
          //-----------------------------------checking cancellable order or not ------------------------------------------------------//
-         if(checkOrder.cancellable==false && status=='cancled'){
-            return res.status(400).send({status:false,message:"This order cannot cancle because it is uncellable order"})
+         if(checkOrder.cancellable==false && (status=='cancled' ) ){
+            return res.status(400).send({status:false,message:"This order cannot cancel because it is uncancellable order"})
+         }
+
+         if(checkOrder.status=="completed" && (status=='cancled' ) ){
+            return res.status(400).send({status:false,message:"This order cannot cancel because it already completed"})
          }
         //---------------------------updating status--------------------------------------------------------------//
         

@@ -14,8 +14,8 @@ const createCart = async function (req, res) {
         //-------------------------------------checking user------------------------------------------//
         if (!userId || !isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "Please provide a valid userId." }) }
         const checkUser = await userModel.findById(userId)
-        if (checkUser == null || checkUser.isDeleted == true) {
-            return res.status(404).send({ status: false, message: "user not found or it may be deleted" })
+        if (!checkUser) {
+            return res.status(404).send({ status: false, message: "user not found" })
         }
         //-------------------------------------checking product------------------------------------------//
         if (!productId || !isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "Please provide a valid productId." }) }
