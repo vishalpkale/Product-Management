@@ -22,7 +22,7 @@ const createProduct = async (req, res) => {
 
         if (!description || !stringRegex(description)) return res.status(400).send({ status: false, message: "please provide description it should be valid" })
 
-        if (!price || !priceRegex(price)) return res.status(400).send({ status: false, message: "please provide price and it should not start from zero" })
+        if (!price || !priceRegex(price)) return res.status(400).send({ status: false, message: "please provide price and it should only intergers" })
 
         if (currencyId != "INR") return res.status(400).send({ status: false, message: "Only indian currency id allowed for example INR" })
 

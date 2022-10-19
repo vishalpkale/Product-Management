@@ -23,14 +23,14 @@ router.get('/products/:productId',productByid)
 router.put('/products/:productId',updateProduct)
 router.delete('/products/:productId',deleteProduct)
 
-router.post('/users/:userId/cart',createCart)
+router.post('/users/:userId/cart',authentication,authorization,createCart)
 router.put('/users/:userId/cart',authentication,authorization,updateCart) 
-router.get('/users/:userId/cart',getCart)
+router.get('/users/:userId/cart',authentication,authorization,getCart)
 router.delete('/users/:userId/cart',authentication,authorization,deleteCart)
 
 
-// router.post('/users/:userId/orders',createOrder)
-// router.put('/users/:userId/orders',updateOrder)
+router.post('/users/:userId/orders',createOrder)
+router.put('/users/:userId/orders',updateOrder)
 
 
 module.exports = router;
