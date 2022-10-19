@@ -1,13 +1,12 @@
 const productModel = require("../model/productModel")
 const { uploadFile } = require("../aws/aws");
 
-const { isValidObjectId, priceRegex, validSize, isvalidBody, stringRegex } = require("../validation/validator");
-const { listeners } = require("../model/productModel");
+const { isValidObjectId, priceRegex, validSize, stringRegex } = require("../validation/validator");
 //=====================================post API===============================================================================//
 const createProduct = async (req, res) => {
     try {
         if (Object.keys(req.body).length == 0) {
-            return res.status(400).send({ status: false, message: "for registration user data is required", });
+            return res.status(400).send({ status: false, message: "for creation product data is required", });
         }
         //destructing
         let { title, description, price, currencyId, isFreeShipping, style, availableSizes, installments } = req.body
@@ -16,20 +15,18 @@ const createProduct = async (req, res) => {
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
             productImage = uploadedFileURL;
-        } else {
-            return res.status(400).send({ message: "No file found" });
-        }
+         } 
         if (!productImage) { return res.status(400).send({ status: false, message: "please provide productImage" }); }
 
-        if (!(title) || (!stringRegex(title))) return res.status(400).send({ status: false, message: "please provide tittle and it should be in string" })
+        if (!(title) || (!stringRegex(title))) return res.status(400).send({ status: false, message: "please provide tittle and it should be valid" })
 
-        if (!description || !stringRegex(description)) return res.status(400).send({ status: false, message: "please provide description it should be in string" })
+        if (!description || !stringRegex(description)) return res.status(400).send({ status: false, message: "please provide description it should be valid" })
 
-        if (!price || !priceRegex(price)) return res.status(400).send({ status: false, message: "please provide price and it should be only numbers" })
+        if (!price || !priceRegex(price)) return res.status(400).send({ status: false, message: "please provide price and it should not start from zero" })
 
         if (currencyId != "INR") return res.status(400).send({ status: false, message: "Only indian currency id allowed for example INR" })
 
-        if ((!style) || (!stringRegex(style))) return res.status(400).send({ status: false, message: "please provide style only in string" })
+        if ((!style) || (!stringRegex(style))) return res.status(400).send({ status: false, message: "please provide style it should be valid" })
 
         if ((!availableSizes) || !validSize(availableSizes)) return res.status(400).send({ status: false, message: "The size can be only S, XS,M, X, L, XXL" })
         ////converting given string into array
@@ -50,14 +47,14 @@ const createProduct = async (req, res) => {
         return res.status(201).send({ status: true, message: "Success", data: savedData });
 
     } catch (err) {
-        res.status(500).send({ status: false, message: err.message });
+      return  res.status(500).send({ status: false, message: err.message });
     }
 }
 //===================================================GET PRODUCT==========================================================================//
 
-const getallProduct = async function (req, res) {
+const getallProduct = async (req, res)=>{
     try {
-        let { size, priceSort, name, priceGreaterThan, priceLessThan, ...restall } = req.query
+        let { size, priceSort, name, priceGreaterThan, priceLessThan,...restall} = req.query
         let filters = {
             "isDeleted": false
         }
@@ -69,11 +66,6 @@ const getallProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "The filters can only size,priceSort,name,priceGreaterThan or priceLessThan" })
         }
         if (size) {
-            // size = JSON.parse(size)
-            // if (!validSize(size)) {
-            //     return res.status(400).send({ status: false, message: "The size can be only S, XS,M, X, L, XXL" })
-            // }
-            // console.log(size)
             filters["availableSizes"] = { "$in": size.toUpperCase().split(",").map((x) => x.trim()) }
         }
         let newsort
@@ -158,7 +150,7 @@ const updateProduct = async (req, res) => {
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0]);
 
-            profileImage = uploadedFileURL;
+            productImage = uploadedFileURL;
             
             updateData["productImage"] = productImage
         }
@@ -167,7 +159,7 @@ const updateProduct = async (req, res) => {
                 .status(400)
                 .send({
                     status: false,
-                    message: "for updation user data is required",
+                    message: "for updation product data is required",
                 });
         }
 
@@ -175,19 +167,19 @@ const updateProduct = async (req, res) => {
 
         if (title) {
             if (!stringRegex(title)) {
-                return res.status(400).send({ status: false, message: "title should be not empty" })
+                return res.status(400).send({ status: false, message: "please give valid title for products" })
             }
 
             //checking title duplicasy
             let titleExist = await productModel.findOne({ title: title })
-            if (titleExist) { return res.status(400).send({ status: false, message: "title is already exist" }) }
+            if (titleExist) { return res.status(400).send({ status: false, message: "this title is already exist" }) }
             updateData['title'] = title
         }
         /*-------------------------------------------Description Validation--------------------------------------------------------*/
 
         if (description) {
             if (!stringRegex(description)) {
-                return res.status(400).send({ status: false, message: "Description should be not empty" })
+                return res.status(400).send({ status: false, message: "give valid description for products" })
             }
             updateData['description'] = description
         }
@@ -196,7 +188,7 @@ const updateProduct = async (req, res) => {
 
         if (price) {
             if (!priceRegex(price)) {
-                return res.status(400).send({ status: false, message: "price should be not empty" })
+                return res.status(400).send({ status: false, message: "give valid price for product" })
             }
             updateData['price'] = price
         }
@@ -215,7 +207,7 @@ const updateProduct = async (req, res) => {
 
         if (style) {
             if (!stringRegex(style)) {
-                return res.status(400).send({ status: false, message: " style should be not empty" })
+                return res.status(400).send({ status: false, message: "style should be valid" })
             }
             updateData['style'] = style
         }
@@ -235,7 +227,7 @@ const updateProduct = async (req, res) => {
         /*----------------------------------------------INSTALLMENT VALIDATION------------------------------------------------------------------*/
         if (installments) {
             if (!priceRegex(installments)) {
-                return res.status(400).send({ status: false, message: " installments should be not empty" })
+                return res.status(400).send({ status: false, message: " installments should be valid" })
             }
             updateData["installments"] = installments;
         }
@@ -244,7 +236,7 @@ const updateProduct = async (req, res) => {
                 productId ,
             { $set: updateData },
             { new: true })
-        return res.status(200).send({ status: true, message: "User profile updated successfully", data: updateDetails })
+        return res.status(200).send({ status: true, message: "product updated successfully", data: updateDetails })
     } catch (error) {
         return res.status(500).send({ status: false, error: error.message });
     }

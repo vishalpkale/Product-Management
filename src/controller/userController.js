@@ -2,7 +2,7 @@ const userModel = require('../model/userModel')
 const bcrypt = require('bcrypt');
 const {uploadFile}=require("../aws/aws");
 const jwt = require('jsonwebtoken');
-const {validImage,isValidObjectId,stringRegex,phoneRegex,emailRegex,pincodeRegex,passwordRegex}=require("../validation/validator")
+const {isValidObjectId,stringRegex,phoneRegex,emailRegex,pincodeRegex,passwordRegex}=require("../validation/validator")
 
 const createUser = async (req, res) => {
     try {
@@ -18,7 +18,7 @@ const createUser = async (req, res) => {
                 .status(400)
                 .send({
                     status: false,
-                    message: "for updation user data is required",
+                    message: "for creation user data is required",
                 });
         }
         let { fname, lname, email, phone, password, address } = req.body;
@@ -133,15 +133,7 @@ const createUser = async (req, res) => {
        
         password = await bcrypt.hash(req.body.password, 10);
         // console.log(password);
-        const dataForCreation={
-            fname: fname,
-            lname: lname,
-            email: email,
-            profileImage: profileImage,
-            phone: phone,
-            password: password,
-            address: address,
-        };
+        const dataForCreation={fname,lname, email,profileImage,phone, password,address};
         const savedData = await userModel.create(dataForCreation);
         return res
             .status(201)
@@ -178,11 +170,10 @@ const getUserDetails = async function (req, res) {
         .status(200)
         .send({ status: true, message: "User profile details", data: userData });
     } catch (err) {
-      res.status(500).send({ status: false, message: err.message });
+     return res.status(500).send({ status: false, message: err.message });
     }
   };
   
-//   module.exports = {getUserDetails}
 
 const loginUser = async function (req, res) {
     try {
@@ -203,11 +194,10 @@ const loginUser = async function (req, res) {
         "Project-5_Group-34",
         { expiresIn: exp }
       );
-    //   res.setHeader("x-api-key", token);
       let datas= {token:token, userId:user._id, iat:Date.now(), exp:exp}
-      res.status(201).send({ status: true, message: "Login successfully...!", data: datas });
+     return res.status(201).send({ status: true, message: "Login successfully...!", data: datas });
     } catch (error) {
-      res.status(500).send({ status: false, err: error.message });
+    return  res.status(500).send({ status: false, err: error.message });
     }
   };
 
@@ -373,7 +363,6 @@ const updateProfile = async function (req, res) {
                 }
             }
         }
-        console.log(updates)
             let updateUser = await userModel.findByIdAndUpdate(
                 { _id: userId },
                 { $set:  updates},
