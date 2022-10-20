@@ -30,9 +30,16 @@ const createUser = async (req, res) => {
         if (!phone) {return res.status(400).send({ status: false, message: "Enter your  phone" }); }
         if (!password) {return res.status(400).send({ status: false, message: "Enter your  password" }); }
         if (!address) {return res.status(400).send({ status: false, message: "Enter your  Address" }); }
-        address = JSON.parse(address)
-        if (!address['shipping']) {return res.status(400).send({ status: false, message: "Enter your shipping Address" }); }
-        if (!address['shipping']['street']) {return res.status(400).send({ status: false, message: "Enter your shipping street" }); }
+        //-----------checking address is in right formate or not---------------/
+        try{
+            address =JSON.parse(address)
+        }
+        catch(error){
+            return res.status(400).send({status:false,message:"Provide detailed address"})
+        }   
+       
+        if (!address.shipping) {return res.status(400).send({ status: false, message: "Enter your shipping Address" }); }
+        if (!address.shipping.street) {return res.status(400).send({ status: false, message: "Enter your shipping street" }); }
         if (!address.shipping.city) {return res.status(400).send({ status: false, message: "Enter your shipping city" }); }
         if (!address.shipping.pincode) {return res.status(400).send({ status: false, message: "Enter your shipping pincode" }); }
         if (!address.billing) {return res.status(400).send({ status: false, message: "Enter your billing " }); }
@@ -89,7 +96,7 @@ const createUser = async (req, res) => {
                     message: "please Enter valid Password and it's length should be 8-15",
                 });
         }
-
+        
         if (!pincodeRegex(address.shipping.pincode))
             return res
                 .status(400)
@@ -178,8 +185,8 @@ const getUserDetails = async function (req, res) {
 const loginUser = async function (req, res) {
     try {
       let { email, password } = req.body;
-        if (Object.keys(req.body).length == 0) {
-            return res.status(400).send({ status: false, message: "for login user data is required" })
+        if (!email || !password) {
+            return res.status(400).send({ status: false, message: "for login user email and password both are required" })
         }
       const user = await userModel.findOne({ email: email});
       if (!user) {
@@ -368,7 +375,7 @@ const updateProfile = async function (req, res) {
                 { $set:  updates},
                 { new: true }
             );
-            return res.status(200).send({ status: true, data: updateUser });
+            return res.status(200).send({ status: true, message:"Profile updated", data: updateUser });
         } catch (error) {
             return res.status(500).send({ status: false, error: error.message });
         }

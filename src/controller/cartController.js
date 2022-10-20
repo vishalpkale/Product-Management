@@ -83,7 +83,7 @@ const createCart = async function (req, res) {
 
 
 
-            return res.status(201).send({ status: true, message: "Card Created", data: createCart1 })
+            return res.status(201).send({ status: true, message: "Success", data: createCart1 })
 
         }
     } catch (err) {
@@ -120,6 +120,7 @@ const updateCart = async function (req, res) {////negeative number ,,,price
         }
         //-----------------------------------------------------------------------------------------------//
         let arr = checkCart.items
+        if(arr.length==0) return res.status(400).send({status:false,message:"No items present in the cart"})
         let quantity = 0
         let finalPrice = checkCart.totalPrice
         for (let i = 0; i < arr.length; i++) {
@@ -156,7 +157,7 @@ const updateCart = async function (req, res) {////negeative number ,,,price
             { $set: dataForUpdation },
             { new: true }
         ).populate("items.productId", ("price title description productImage availableSizes"))
-        return res.status(200).send({ status: true, message: "Cart updated", data: updateCard })
+        return res.status(200).send({ status: true, message: "Success", data: updateCard })
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });

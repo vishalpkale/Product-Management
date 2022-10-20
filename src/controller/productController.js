@@ -28,7 +28,7 @@ const createProduct = async (req, res) => {
 
         if ((!style) || (!stringRegex(style))) return res.status(400).send({ status: false, message: "please provide style it should be valid" })
 
-        if ((!availableSizes) || !validSize(availableSizes)) return res.status(400).send({ status: false, message: "The size can be only S, XS,M, X, L, XXL" })
+        if ((!availableSizes) || !validSize(availableSizes)) return res.status(400).send({ status: false, message: " Provide availableSizes their values can be only S, XS,M, X, L, XXL" })
         ////converting given string into array
         availableSizes = availableSizes.toUpperCase().split(",").map((x) => x.trim())
 
@@ -70,7 +70,7 @@ const getallProduct = async (req, res)=>{
         }
         let newsort
         if (priceSort) {
-            newsort = [1, -1, "1", "-1"]
+            newsort = ['1', '-1']
             if (!newsort.includes(priceSort))
                 return res.status(400).send({ status: false, message: "value of priceSort can be 1 or -1 only" })
         }
