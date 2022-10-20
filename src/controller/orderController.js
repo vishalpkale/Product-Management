@@ -104,6 +104,10 @@ const updateOrder=async function(req,res){
             return res.status(400).send({status:false,message:"This order cannot cancel because it is uncancellable order"})
          }
 
+        if(checkOrder.status=="cancled" && (status=='completed' ) ){
+            return res.status(400).send({status:false,message:"This order cannot complete because it already cancled"})
+         }
+        
          if(checkOrder.status=="completed" && (status=='cancled' ) ){
             return res.status(400).send({status:false,message:"This order cannot cancel because it already completed"})
          }
