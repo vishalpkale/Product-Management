@@ -4,7 +4,7 @@ const cartModel=require('../model/cartModel')
 const { isValidObjectId ,isvalidBody} = require("../validation/validator")
 
 const isValidstatus=(value)=>{
-    const statuses=["pending", "completed", "cancled"]
+    const statuses=["completed", "cancled"]
     if(statuses.includes(value)) return true
     return false
 }
@@ -91,7 +91,7 @@ const updateOrder=async function(req,res){
          const {orderId,status}=req.body
 
          if(!status || !isValidstatus(status)){
-            return res.status(400).send({status:false,message:"Provide value for status one of these pending,completed or cancled"})
+            return res.status(400).send({status:false,message:"you can change status only to completed or cancled"})
          }
          //----------------------------------------order validation---------------------------//
          if (!orderId || !isValidObjectId(orderId)) { return res.status(400).send({ status: false, message: "Please provide a valid orderId." }) }
